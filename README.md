@@ -1,0 +1,2 @@
+# BulbaBot
+ SelfBot for Pokecord
