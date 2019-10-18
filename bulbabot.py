@@ -167,8 +167,19 @@ class bot(discord.Client):
                                         pf = x.description.split("nd type ")[1].split(" ")[0] ## Get command prefix
                                         pf = pf.replace("а", "a")
 
-                                        conn = http.client.HTTPConnection("katddns.mooo.com", 80)
-                                        conn.request("GET", "/bulbabot", headers={"URL": x.image.url, "User-Agent": "BulbaBot/"+bv})
+                                        try:
+                                            conn = http.client.HTTPConnection("katddns.mooo.com", 80, timeout=10)
+                                            conn.request("GET", "/bulbabot", headers={"URL": x.image.url, "User-Agent": "BulbaBot/"+bv})
+                                        except:
+                                            try:
+                                                conn = http.client.HTTPConnection("katddns.mooo.com", 80, timeout=10)
+                                                conn.request("GET", "/bulbabot", headers={"URL": x.image.url, "User-Agent": "BulbaBot/"+bv})
+                                            except:
+                                                print("Could not contact server.")
+                                                self.pkfm_pause = False
+                                                return
+
+
                                         pkmn = str(conn.getresponse().read())
                                         pkmn = pkmn[2:len(pkmn)-1]
 
