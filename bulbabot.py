@@ -1,6 +1,7 @@
 import discord
 import asyncio
 import iomanage
+import random
 
 import time
 
@@ -16,7 +17,9 @@ class bot(discord.Client):
 
         self.bot_id = 365975655608745985
         self.pkfm_pause = False
+        self.pkfm_running = False
         self.pcatch_messages = {}
+        self.lnp = {} # { Server_ID: pf, ..}
 
         self.legendaries = [
             'Arceus', 'Articuno', 'Azelf', 'Celebi', 'Cobalion', 'Cosmoem', 'Cosmog', 'Cresselia',
@@ -28,6 +31,8 @@ class bot(discord.Client):
             'Solgaleo', 'Suicune', 'Tapu Bulu', 'Tapu Fini', 'Tapu Koko', 'Tapu Lele', 'Terrakion', 'Thundurus',
             'Tornadus', 'Type: Null', 'Uxie', 'Victini', 'Virizion', 'Volcanion', 'Xerneas', 'Yveltal',
             'Zapdos', 'Zekrom', 'Zeraora', 'Zygarde']
+
+        self.WordList = "a b c d e f g h i j k l m n o p q r s t u v w q y z"
 
         #self.run()
 
@@ -65,12 +70,66 @@ class bot(discord.Client):
 
         return rRetrun if d["Autocatcher"]["Mode"] == "w" else not rReturn
 
+    ## Pokefarmer
+
+    async def Farm(self):
+        self.pkfm_running = True
+
+        while True:
+            d = self.io.Read()
+
+            if d["Pokefarm"]["Mode"] != 0:
+                if not d["Pokefarm"]["Channel"] == None and not self.get_channel(d["Pokefarm"]["Channel"]) == None:
+                    if d["Pokefarm"]["Mode"] == 1:
+                        t = [30, 50]
+                    elif d["Pokefarm"]["Mode"] == 2:
+                        t = [8, 15]
+                    elif d["Pokefarm"]["Mode"] == 3:
+                        t = [1, 6]
+
+                    await asyncio.sleep(random.randint(t[0], t[1]))
+
+                    if self.pkfm_pause:
+                        print("PK Farm paused...")
+
+                        while self.pkfm_pause:
+                            await asyncio.sleep(2)
+
+                        print("PK Farm resumed.")
+
+                    c = self.get_channel(d["Pokefarm"]["Channel"])
+                    s = ""
+
+                    for x in range(random.randint(1, 8)):
+                        if s != "":
+                            s += " "
+
+                        for x in range(random.randint(2, 10)):
+                            s += random.choice(self.WordList.split(" "))
+
+                    try:
+                        await c.send(s)
+                    except:
+                        await asyncio.sleep(10)
+                else:
+                    break
+            else:
+                break
+
+        self.pkfm_running = False
+
     ## Events
 
     async def on_ready(self):
         print("Logged on as " + self.user.name)
 
+        if not self.pkfm_running:
+            await self.Farm()
+
     async def on_message(self, msg):
+        if not self.pkfm_running:
+            await self.Farm()
+
         d = self.io.Read()
         if d["Autocatcher"]["Mode"] == 0:
             return
@@ -84,6 +143,9 @@ class bot(discord.Client):
             pkmn = msg.content.split("level ")[1].split(" ")[1].split("!")[0]
             print("Caught " + pkmn + "!")
 
+            if d["Autocatcher"]["Safe"]:
+                if msg.guild.id in self.lnp:
+                    await msg.channel.send(self.lnp[msg.guild.id]+"info latest")
         else:
             if not msg.guild == None and not msg.guild.id in d["Blacklisted Servers"]:
                 if self.TimeCheck(msg.guild.id, d):
@@ -109,8 +171,21 @@ class bot(discord.Client):
                                         pf = x.description.split("nd type ")[1].split(" ")[0] ## Get command prefix
                                         pf = pf.replace("а", "a")
 
-                                        conn = http.client.HTTPConnection("katddns.mooo.com", 80)
-                                        conn.request("GET", "/bulbabot", headers={"URL": x.image.url, "User-Agent": "BulbaBot/"+bv})
+                                        self.lnp[msg.guild.id] = pf[:len(pf)-len("catch")]
+
+                                        try:
+                                            conn = http.client.HTTPConnection("katddns.mooo.com", 80, timeout=10)
+                                            conn.request("GET", "/bulbabot", headers={"URL": x.image.url, "User-Agent": "BulbaBot/"+bv})
+                                        except:
+                                            try:
+                                                conn = http.client.HTTPConnection("katddns.mooo.com", 80, timeout=10)
+                                                conn.request("GET", "/bulbabot", headers={"URL": x.image.url, "User-Agent": "BulbaBot/"+bv})
+                                            except:
+                                                print("Could not contact server.")
+                                                self.pkfm_pause = False
+                                                return
+
+
                                         pkmn = str(conn.getresponse().read())
                                         pkmn = pkmn[2:len(pkmn)-1]
 
@@ -154,5 +229,5 @@ if __name__ == "__main__":
     d = io.Read()
     if d == {}: io.Write(Default_Settings)
 
-    bot = bulbabot.bot(io)
-    bot.run()
+    b = bot(io)
+    b.run()
