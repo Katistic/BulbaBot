@@ -20,11 +20,13 @@ Default_Settings = {
         "Backlist": [], # Blacklisted pokemon
         "Safe": True, # Try to look human
         "Mode": "w", # W = Whitelist, B = Blacklist
+        "ToCatch": 1, # % Of spawned pokemon to catch, 1 = 100%
         "TimeSettings": {
             # Server_ID: {"24/7": True, "Day<Num,1-7>": [[Hour1, min1], [Hour2, min2], ..], ..}
         }
     },
-    "ClientToken": None # Token
+    "ClientToken": None, # Token
+    "RunOnStart": False
 }
 
 class SignalObject(QObject):

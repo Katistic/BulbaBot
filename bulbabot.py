@@ -198,7 +198,15 @@ class bot(discord.Client):
 
                                             catchcmd = pf + " " + pkmn
                                             if not catchcmd.lower() in self.pcatch_messages or not not self.pcatch_messages[catchcmd.lower()] == msg.guild.id:
-                                                await msg.channel.send(catchcmd)
+                                                if d["Autocatcher"]["Safe"]:
+                                                    p = d["ToCatch"] * 100
+                                                    chance = random.randint(1, 100)
+                                                    if p <= chance:
+                                                        await msg.channel.send(catchcmd)
+                                                    else:
+                                                        print("Skipping pokemon. (Safe Mode %)")
+                                                else:
+                                                    await msg.channel.send(catchcmd)
                                             else:
                                                 print("Pokemon guessed, skipping.")
 
@@ -219,11 +227,13 @@ if __name__ == "__main__":
             "Backlist": [], # Blacklisted pokemon
             "Safe": True, # Try to look human
             "Mode": "w", # W = Whitelist, B = Blacklist
+            "ToCatch": 1, # % Of spawned pokemon to catch, 1 = 100%
             "TimeSettings": {
                 # Server_ID: {"24/7": True, "Day<Num,1-7>": [[Hour1, min1], [Hour2, min2], ..], ..}
             }
         },
-        "ClientToken": None # Token
+        "ClientToken": None, # Token
+        "RunOnStart": False
     }
 
     io = iomanage.IOManager("configs.json")
