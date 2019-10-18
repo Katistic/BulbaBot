@@ -4,7 +4,7 @@ import iomanage
 import asyncio
 
 from PySide2.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, \
-    QLabel, QListWidget, QListWidgetItem
+    QLabel, QListWidget, QListWidgetItem, QLineEdit
 
 from PySide2.QtCore import Signal, Slot, QObject
 
@@ -56,11 +56,65 @@ class TerminalTab(QWidget):
         self.List.addItem(item)
         self.List.scrollToBottom()
 
+class ClientSettingTab(QWidget):
+    def ChangeToken(self, qle):
+        t = qle.text()
+
+        id = self.p.io.GetId()
+        d = self.p.io.Read(waitforwrite=True, id=id)
+        d["ClientToken"] = t
+        self.p.io.Write(d, id=id)
+
+    def __init__(self, p):
+        super().__init__()
+        self.p = p
+
+        t = p.io.Read()["ClientToken"]
+
+        RootLayout = QVBoxLayout()
+        self.setLayout(RootLayout)
+
+        TokenInsert = QWidget()
+        RootLayout.addWidget(TokenInsert)
+
+        TokenInsertL = QHBoxLayout()
+        TokenInsert.setLayout(TokenInsertL)
+
+        Label = QLabel("Token")
+        TokenInsertL.addWidget(Label)
+
+        #Spacer = QWidget()
+        #TokenInsertL.addWidget(Spacer)
+
+        TokenEdit = QLineEdit()
+        TokenEdit.setPlaceholderText("Enter user token here...")
+        TokenEdit.returnPressed.connect(lambda: self.ChangeToken(TokenEdit))
+        if t != None: TokenEdit.setText(t)
+        TokenInsertL.addWidget(TokenEdit)
+
+        SetButton = QPushButton("Set Token")
+        TokenInsertL.addWidget(SetButton)
+        SetButton.clicked.connect(lambda: self.ChangeToken(TokenEdit))
+
+        ESpacer = QWidget()
+        RootLayout.addWidget(ESpacer)
+
+        RootLayout.setStretchFactor(ESpacer, 30)
+
+        self.hide()
+
 class MainWindow(QWidget):
     print_wrap = Signal(str)
 
     def print(self, s):
         self.print_wrap.emit(s)
+
+    def ChangeTab(self, tab):
+        if not self.active == None:
+            self.active.hide()
+
+        self.active = tab
+        tab.show()
 
     def __init__(self):
         super().__init__()
@@ -103,6 +157,12 @@ class MainWindow(QWidget):
         Spacer1 = QWidget()
         TabBarLayout.addWidget(Spacer1)
 
+        SettingsButton = QPushButton("Client Settings")
+        TabBarLayout.addWidget(SettingsButton)
+
+        Spacer2 = QWidget()
+        TabBarLayout.addWidget(Spacer2)
+
         ##### Tab Section ####
 
         TabSect = QWidget()
@@ -116,10 +176,19 @@ class MainWindow(QWidget):
         TermTab = TerminalTab(self)
         TabSectL.addWidget(TermTab)
 
+        CSTab = ClientSettingTab(self)
+        TabSectL.addWidget(CSTab)
+
+        ## Sig Connects ##
+
+        TerminalButton.clicked.connect(lambda: self.ChangeTab(TermTab))
+        SettingsButton.clicked.connect(lambda: self.ChangeTab(CSTab))
+
         ##### Sizing #####
 
         TabBarLayout.setStretchFactor(Spacer, 2)
-        TabBarLayout.setStretchFactor(Spacer1, 20)
+        TabBarLayout.setStretchFactor(Spacer1, 2)
+        TabBarLayout.setStretchFactor(Spacer2, 20)
 
         RootLayout.setStretchFactor(TabBar, 1)
         RootLayout.setStretchFactor(TabSect, 5)
@@ -133,6 +202,7 @@ class MainWindow(QWidget):
 
         self.showNormal()
         TermTab.show()
+        self.active = TermTab
 
 
 app = QApplication([])
