@@ -19,6 +19,7 @@ class bot(discord.Client):
         self.pkfm_pause = False
         self.pkfm_running = False
         self.pcatch_messages = {}
+        self.lnp = {} # { Server_ID: pf, ..}
 
         self.legendaries = [
             'Arceus', 'Articuno', 'Azelf', 'Celebi', 'Cobalion', 'Cosmoem', 'Cosmog', 'Cresselia',
@@ -142,6 +143,9 @@ class bot(discord.Client):
             pkmn = msg.content.split("level ")[1].split(" ")[1].split("!")[0]
             print("Caught " + pkmn + "!")
 
+            if d["Autocatcher"]["Safe"]:
+                if msg.guild.id in self.lnp:
+                    await msg.channel.send(self.lnp[msg.guild.id]+"info latest")
         else:
             if not msg.guild == None and not msg.guild.id in d["Blacklisted Servers"]:
                 if self.TimeCheck(msg.guild.id, d):
@@ -166,6 +170,8 @@ class bot(discord.Client):
                                         print("\nPokemon appeared! Sending URL to server...")
                                         pf = x.description.split("nd type ")[1].split(" ")[0] ## Get command prefix
                                         pf = pf.replace("а", "a")
+
+                                        self.lnp[msg.guild.id] = pf[:len(pf)-len("catch")]
 
                                         try:
                                             conn = http.client.HTTPConnection("katddns.mooo.com", 80, timeout=10)
