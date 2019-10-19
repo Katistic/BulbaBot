@@ -145,7 +145,9 @@ class bot(discord.Client):
 
             if d["Autocatcher"]["Safe"]:
                 if msg.guild.id in self.lnp:
-                    await msg.channel.send(self.lnp[msg.guild.id]+"info latest")
+                    with await msg.channel.typing():
+                        await asyncio.sleep(random.randint(1, 3))
+                        await msg.channel.send(self.lnp[msg.guild.id]+"info latest")
         else:
             if not msg.guild == None and not msg.guild.id in d["Blacklisted Servers"]:
                 if self.TimeCheck(msg.guild.id, d):
