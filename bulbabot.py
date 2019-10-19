@@ -68,7 +68,7 @@ class bot(discord.Client):
                     else:
                         tReturn = True
 
-        return rRetrun if d["Autocatcher"]["Mode"] == "w" else not rReturn
+        return tReturn if d["Autocatcher"]["Mode"] == "w" else not tReturn
 
     ## Pokefarmer
 
@@ -167,9 +167,9 @@ class bot(discord.Client):
             pkmn = msg.content.split("level ")[1].split(" ")[1].split("!")[0]
             print("Caught " + pkmn + "!")
 
-            if d["Autocatcher"]["Safe"]:
+            if d["Autocatcher"]["Safe"] == True:
                 if msg.guild.id in self.lnp:
-                    with await msg.channel.typing():
+                    async with msg.channel.typing():
                         await asyncio.sleep(random.randint(1, 3))
                         await msg.channel.send(self.lnp[msg.guild.id]+"info latest")
         else:
