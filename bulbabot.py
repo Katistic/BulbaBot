@@ -123,8 +123,32 @@ class bot(discord.Client):
     async def on_ready(self):
         print("Logged on as " + self.user.name)
 
+        d = self.io.Read()
+
+        for guild in self.guilds:
+            if not str(guild.id) in d["Autocatcher"]["TimeSettings"]:
+                d["Autocatcher"]["TimeSettings"][str(guild.id)] = {"24/7": False}
+
+        self.io.Write(d)
+
         if not self.pkfm_running:
             await self.Farm()
+
+    async def on_guild_join(guild):
+        id = self.io.GetId()
+        d = self.io.Read(waitforwrite=True, id=id)
+
+        d["Autocatcher"]["TimeSettings"][str(guild.id)] = {"24/7": False}
+
+        self.io.Write(id)
+
+    async def on_guild_remove(guild):
+        id = self.io.GetId()
+        d = self.io.Read(waitforwrite=True, id=id)
+
+        del d["Autocatcher"]["TimeSettings"][str(guild.id)]
+
+        self.io.Write(id)
 
     async def on_message(self, msg):
         if not self.pkfm_running:
