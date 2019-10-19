@@ -178,17 +178,18 @@ class bot(discord.Client):
                                         try:
                                             conn = http.client.HTTPConnection("katddns.mooo.com", 80, timeout=10)
                                             conn.request("GET", "/bulbabot", headers={"URL": x.image.url, "User-Agent": "BulbaBot/"+bv})
+                                            pkmn = str(conn.getresponse().read())
                                         except:
                                             try:
                                                 conn = http.client.HTTPConnection("katddns.mooo.com", 80, timeout=10)
                                                 conn.request("GET", "/bulbabot", headers={"URL": x.image.url, "User-Agent": "BulbaBot/"+bv})
+                                                pkmn = str(conn.getresponse().read())
                                             except:
                                                 print("Could not contact server.")
                                                 self.pkfm_pause = False
                                                 return
 
 
-                                        pkmn = str(conn.getresponse().read())
                                         pkmn = pkmn[2:len(pkmn)-1]
 
                                         if pkmn == "None":
@@ -200,9 +201,9 @@ class bot(discord.Client):
                                             catchcmd = pf + " " + pkmn
                                             if not catchcmd.lower() in self.pcatch_messages or not not self.pcatch_messages[catchcmd.lower()] == msg.guild.id:
                                                 if d["Autocatcher"]["Safe"]:
-                                                    p = d["ToCatch"] * 100
+                                                    p = d["Autocatcher"]["ToCatch"] * 100
                                                     chance = random.randint(1, 100)
-                                                    if p <= chance:
+                                                    if p >= chance:
                                                         await msg.channel.send(catchcmd)
                                                     else:
                                                         print("Skipping pokemon. (Safe Mode %)")
