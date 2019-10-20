@@ -306,4 +306,4 @@ if __name__ == "__main__":
     if d == {}: io.Write(Default_Settings)
 
     b = bot(io)
-    b.run()
+    b.run("MAIN")
