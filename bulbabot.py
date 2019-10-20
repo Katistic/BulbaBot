@@ -230,6 +230,7 @@ class bot(discord.Client):
                                             if d["Autocatcher"]["Mode"] == 2:
                                                 if not pkmn in self.legendaries:
                                                     print("[%s] Legendary mode is active, skipping " % self.bname + pkmn)
+                                                    return
 
                                             elif d["Autocatcher"]["Mode"] == 3:
                                                 if d["Autocatcher"]["BlacklistMode"] == "w":

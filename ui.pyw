@@ -227,7 +227,7 @@ class MainWindow(QWidget):
         TermTab.show()
         self.active = TermTab
 
-        self.start_bot()
+        if d["RunOnStart"]: self.start_bot()
 
 
 app = QApplication([])
@@ -237,8 +237,6 @@ Window.setWindowTitle("BulbaBot")
 
 app.exec_()
 
-try:
-    Window.stop_bot()
-except:
-    pass
+
+Window.stop_bot()
 Window.io.Stop()
