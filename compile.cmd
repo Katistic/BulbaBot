@@ -1,2 +1,2 @@
 pyinstaller -y -F -w --clean -n BulbaBotUI --hidden-import PySide2  "C:/Users/Princess/Documents/GitHub/BulbaBot/ui.pyw"
-pyinstaller -y -F -w --clean -n BulbaBot --hidden-import PySide2  "C:/Users/Princess/Documents/GitHub/BulbaBot/bulbabot.py"
+pyinstaller -y -F -w --clean -n BulbaBot "C:/Users/Princess/Documents/GitHub/BulbaBot/bulbabot.py"
