@@ -198,7 +198,9 @@ class MainWindow(QWidget):
         self.io = iomanage.IOManager("configs.json")
 
         d = self.io.Read()
-        if d == {}: self.io.Write(Default_Settings)
+        if d == {}:
+            self.io.Write(Default_Settings)
+            d = Default_Settings
 
         bulbabot.print = self.print
 

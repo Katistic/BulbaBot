@@ -46,6 +46,9 @@ class bot(discord.Client):
         except discord.errors.LoginFailure:
             print("[%s] Improper token has been passed, bot could not start." % self.bname)
 
+            for x in self.ror:
+                x[0](x[1])
+
     #async def close(self):
     #    await super().close()
     #
