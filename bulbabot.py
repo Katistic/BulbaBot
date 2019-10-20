@@ -43,6 +43,7 @@ class bot(discord.Client):
     ## Checker Functions
 
     def TimeCheck(self, guild_id, d):
+
         if not str(guild_id) in d["Autocatcher"]["TimeSettings"]:
             return False if d["Autocatcher"]["Mode"] == "w" else True
 
@@ -68,7 +69,7 @@ class bot(discord.Client):
                     else:
                         tReturn = True
 
-        return tReturn if d["Autocatcher"]["Mode"] == "w" else not tReturn
+        return tReturn if d["Autocatcher"]["TimeMode"] == "w" else not tReturn
 
     ## Pokefarmer
 
@@ -220,6 +221,21 @@ class bot(discord.Client):
                                             print("No match found.")
                                         else:
                                             print("Found match! Thinking " + pkmn)
+
+                                            if d["Autocatcher"]["Mode"] == 2:
+                                                if not pkmn in self.legendaries:
+                                                    print("Legendary mode is active, skipping " + pkmn)
+
+                                            elif d["Autocatcher"]["Mode"] == 3:
+                                                if d["Autocatcher"]["BlacklistMode"] == "w":
+                                                    if not pkmn in d["Autocatcher"]["Blacklist"]:
+                                                        print(pkmn + " is not in whitelist, skipping.")
+                                                        return
+                                                else:
+                                                    if pkmn in d["Autocatcher"]["Blacklist"]:
+                                                        print(pkmn + " is in blacklist, skipping.")
+                                                        return
+
                                             await asyncio.sleep(.5)
 
                                             catchcmd = pf + " " + pkmn
@@ -237,7 +253,7 @@ class bot(discord.Client):
                                                 print("Pokemon guessed, skipping.")
 
                                         print("Check took " + str(time.time() - st) + " seconds.")
-                                        if s != discord.Status.online and s != discord.Status.do_not_disturb:
+                                        if s != discord.Status.online and s != discord.Status.do_not_disturb and s != None:
                                             await self.change_presence(status = s)
                         self.pkfm_pause = False
 
@@ -250,9 +266,10 @@ if __name__ == "__main__":
         },
         "Autocatcher": {
             "Mode": 0, # 0 = Off, 1 = Catch All, 2 = Legendary Only
-            "Backlist": [], # Blacklisted pokemon
+            "Blacklist": [], # Blacklisted pokemon
             "Safe": True, # Try to look human
-            "Mode": "w", # W = Whitelist, B = Blacklist
+            "TimeMode": "w", # W = Whitelist, B = Blacklist
+            "BlacklistMode": "w", # W = Whitelist, B = Blacklist
             "ToCatch": 1, # % Of spawned pokemon to catch, 1 = 100%
             "TimeSettings": {
                 # Server_ID: {"24/7": True, "Day<Num,1-7>": [[Hour1, min1], [Hour2, min2], ..], ..}

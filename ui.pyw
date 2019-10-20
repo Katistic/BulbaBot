@@ -16,10 +16,11 @@ Default_Settings = {
         "Channel": None # Channel ID
     },
     "Autocatcher": {
-        "Mode": 0, # 0 = Off, 1 = Catch All, 2 = Legendary Only
-        "Backlist": [], # Blacklisted pokemon
+        "Mode": 0, # 0 = Off, 1 = Catch All, 2 = Legendary Only, 3 = Blacklist
+        "Blacklist": [], # Blacklisted pokemon
         "Safe": True, # Try to look human
-        "Mode": "w", # W = Whitelist, B = Blacklist
+        "TimeMode": "w", # W = Whitelist, B = Blacklist
+        "BlacklistMode": "w", # W = Whitelist, B = Blacklist
         "ToCatch": 1, # % Of spawned pokemon to catch, 1 = 100%
         "TimeSettings": {
             # Server_ID: {"24/7": True, "Day<Num,1-7>": [[Hour1, min1], [Hour2, min2], ..], ..}
