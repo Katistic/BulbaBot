@@ -36,19 +36,24 @@ class bot(discord.Client):
 
         #self.run()
 
-    def run(self, name):
+    def run(self, name, ror=[]):
         d = self.io.Read()
         self.bname = name
+        self.ror = ror
 
         try:
             super().run(d["ClientToken"], bot=False)
         except discord.errors.LoginFailure:
             print("[%s] Improper token has been passed, bot could not start." % self.bname)
 
+    #async def close(self):
+    #    await super().close()
+    #
+    #
+
     ## Checker Functions
 
     def TimeCheck(self, guild_id, d):
-
         if not str(guild_id) in d["Autocatcher"]["TimeSettings"]:
             return False if d["Autocatcher"]["Mode"] == "w" else True
 
@@ -139,6 +144,9 @@ class bot(discord.Client):
 
         if not self.pkfm_running:
             await self.Farm()
+
+        for x in self.ror:
+            x[0](x[1])
 
     async def on_guild_join(guild):
         id = self.io.GetId()

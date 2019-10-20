@@ -3,6 +3,8 @@ import bulbabot
 import iomanage
 import asyncio
 
+import time
+
 from PySide2.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, \
     QLabel, QListWidget, QListWidgetItem, QLineEdit, QCheckBox
 
@@ -154,18 +156,36 @@ class MainWindow(QWidget):
 
     def stop_bot(self):
         try:
+            self.StartButton.setEnabled(False)
+            self.StopButton.setEnabled(False)
             asyncio.ensure_future(self.bot.close(), loop = self.bot.loop)
+
+            while self.botthread.is_alive():
+                time.sleep(.1)
+
+            print("[UI] Stopped bot.")
+            self.botthread = None
+            self.bot = None
         except:
             print("[UI] Tried to stop bot, but bot wasn't running!")
 
+        self.StartButton.setEnabled(True)
+        self.StopButton.setEnabled(True)
+
     def start_bot(self):
         if self.botthread == None or not self.botthread.is_alive():
+            self.StartButton.setEnabled(False)
+            self.StopButton.setEnabled(False)
             print("[UI] Starting bot...")
 
+            asyncio.set_event_loop(asyncio.new_event_loop())
+
             self.bot = bulbabot.bot(self.io)
-            self.botthread = threading.Thread(target = self.bot.run, args=["MAIN"])
+            self.botthread = threading.Thread(target = self.bot.run, args=["MAIN"],\
+                kwargs={"ror": [[self.StopButton.setEnabled, True], [self.StartButton.setEnabled, True]]})
             self.botthread.daemon = True
             self.botthread.start()
+            #self.StartButton.setEnabled(True)
         else:
             print("[UI] Tried to start bot, but bot was already running!")
 
@@ -198,6 +218,20 @@ class MainWindow(QWidget):
 
         TabBarLayout = QVBoxLayout()
         TabBar.setLayout(TabBarLayout)
+
+        SSW = QWidget()
+        TabBarLayout.addWidget(SSW)
+
+        SSWL = QHBoxLayout()
+        SSW.setLayout(SSWL)
+
+        self.StartButton = QPushButton("Start Bot")
+        self.StartButton.clicked.connect(self.start_bot)
+        self.StopButton = QPushButton("Stop Bot")
+        self.StopButton.clicked.connect(self.stop_bot)
+
+        SSWL.addWidget(self.StartButton)
+        SSWL.addWidget(self.StopButton)
 
         Spacer = QWidget()
         TabBarLayout.addWidget(Spacer)
