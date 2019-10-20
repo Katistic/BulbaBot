@@ -97,6 +97,8 @@ class bot(discord.Client):
                         t = [8, 15]
                     elif d["Pokefarm"]["Mode"] == 3:
                         t = [1, 6]
+                    elif d["Pokefarm"]["Mode"] == 4:
+                        t = [1, 2]
 
                     await asyncio.sleep(random.randint(t[0], t[1]))
 
@@ -278,7 +280,7 @@ if __name__ == "__main__":
     Default_Settings = {
         "Blacklisted Servers": [], # [serv_id, serv_id, serv_id]
         "Pokefarm": {
-            "Mode": 0, # 0 = Off, 1 = slow (30 - 50 seconds), 2 = Medium (8 - 15 seconds), 3 = Fast (1 - 6 seconds)
+            "Mode": 0, # 0 = Off, 1 = slow (30 - 50 seconds), 2 = Medium (8 - 15 seconds), 3 = Fast (1 - 6 seconds), 4 = Botting (1 - 2 seconds)
             "Channel": None # Channel ID
         },
         "Autocatcher": {
