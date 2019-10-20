@@ -36,9 +36,14 @@ class bot(discord.Client):
 
         #self.run()
 
-    def run(self):
+    def run(self, name):
         d = self.io.Read()
-        super().run(d["ClientToken"], bot=False)
+        self.bname = name
+
+        try:
+            super().run(d["ClientToken"], bot=False)
+        except discord.errors.LoginFailure:
+            print("[%s] Improper token has been passed, bot could not start." % self.bname)
 
     ## Checker Functions
 
@@ -91,12 +96,12 @@ class bot(discord.Client):
                     await asyncio.sleep(random.randint(t[0], t[1]))
 
                     if self.pkfm_pause:
-                        print("PK Farm paused...")
+                        print("[%s] PK Farm paused..." % self.bname)
 
                         while self.pkfm_pause:
                             await asyncio.sleep(2)
 
-                        print("PK Farm resumed.")
+                        print("[%s] PK Farm resumed." % self.bname)
 
                     c = self.get_channel(d["Pokefarm"]["Channel"])
                     s = ""
@@ -122,7 +127,7 @@ class bot(discord.Client):
     ## Events
 
     async def on_ready(self):
-        print("Logged on as " + self.user.name)
+        print("[%s] Logged on as " % self.bname + self.user.name)
 
         d = self.io.Read()
 
@@ -166,7 +171,7 @@ class bot(discord.Client):
 
         elif self.user.mention in msg.content and msg.author.id == self.bot_id:
             pkmn = msg.content.split("level ")[1].split(" ")[1].split("!")[0]
-            print("Caught " + pkmn + "!")
+            print("[%s] Caught " % self.bname + pkmn + "!")
 
             if d["Autocatcher"]["Safe"] == True:
                 if msg.guild.id in self.lnp:
@@ -194,7 +199,7 @@ class bot(discord.Client):
                                             await msg.channel.trigger_typing()
                                         else: s = None
 
-                                        print("\nPokemon appeared! Sending URL to server...")
+                                        print("\n[%s] Pokemon appeared! Sending URL to server..." % self.bname)
                                         pf = x.description.split("nd type ")[1].split(" ")[0] ## Get command prefix
                                         pf = pf.replace("а", "a")
 
@@ -210,7 +215,7 @@ class bot(discord.Client):
                                                 conn.request("GET", "/bulbabot", headers={"URL": x.image.url, "User-Agent": "BulbaBot/"+bv})
                                                 pkmn = str(conn.getresponse().read())
                                             except:
-                                                print("Could not contact server.")
+                                                print("[%s] Could not contact server." % self.bname)
                                                 self.pkfm_pause = False
                                                 return
 
@@ -218,22 +223,22 @@ class bot(discord.Client):
                                         pkmn = pkmn[2:len(pkmn)-1]
 
                                         if pkmn == "None":
-                                            print("No match found.")
+                                            print("[%s] No match found." % self.bname)
                                         else:
-                                            print("Found match! Thinking " + pkmn)
+                                            print("[%s] Found match! Thinking " % self.bname + pkmn)
 
                                             if d["Autocatcher"]["Mode"] == 2:
                                                 if not pkmn in self.legendaries:
-                                                    print("Legendary mode is active, skipping " + pkmn)
+                                                    print("[%s] Legendary mode is active, skipping " % self.bname + pkmn)
 
                                             elif d["Autocatcher"]["Mode"] == 3:
                                                 if d["Autocatcher"]["BlacklistMode"] == "w":
                                                     if not pkmn in d["Autocatcher"]["Blacklist"]:
-                                                        print(pkmn + " is not in whitelist, skipping.")
+                                                        print("[%s] " % self.bname + pkmn + " is not in whitelist, skipping.")
                                                         return
                                                 else:
                                                     if pkmn in d["Autocatcher"]["Blacklist"]:
-                                                        print(pkmn + " is in blacklist, skipping.")
+                                                        print("[%s] " % self.bname + pkmn + " is in blacklist, skipping.")
                                                         return
 
                                             await asyncio.sleep(.5)
@@ -246,13 +251,13 @@ class bot(discord.Client):
                                                     if p >= chance:
                                                         await msg.channel.send(catchcmd)
                                                     else:
-                                                        print("Skipping pokemon. (Safe Mode %)")
+                                                        print("[%s] Skipping pokemon. (Safe Mode %)" % self.bname)
                                                 else:
                                                     await msg.channel.send(catchcmd)
                                             else:
-                                                print("Pokemon guessed, skipping.")
+                                                print("[%s] Pokemon guessed, skipping." % self.bname)
 
-                                        print("Check took " + str(time.time() - st) + " seconds.")
+                                        print("[%s] Check took " + str(time.time() - st) + " seconds." % self.bname)
                                         if s != discord.Status.online and s != discord.Status.do_not_disturb and s != None:
                                             await self.change_presence(status = s)
                         self.pkfm_pause = False

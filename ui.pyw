@@ -35,7 +35,6 @@ class SignalObject(QObject):
     #    self.sig.connect(slot)
 
 class TerminalTab(QWidget):
-
     def __init__(self, p):
         super().__init__()
 
@@ -119,8 +118,28 @@ class MainWindow(QWidget):
         self.active = tab
         tab.show()
 
+    def stop_bot(self):
+        try:
+            asyncio.ensure_future(self.bot.close(), loop = self.bot.loop)
+        except:
+            print("[UI] Tried to stop bot, but bot wasn't running!")
+
+    def start_bot(self):
+        if self.botthread == None or not self.botthread.is_alive():
+            print("[UI] Starting bot...")
+
+            self.bot = bulbabot.bot(self.io)
+            self.botthread = threading.Thread(target = self.bot.run, args=["MAIN"])
+            self.botthread.daemon = True
+            self.botthread.start()
+        else:
+            print("[UI] Tried to start bot, but bot was already running!")
+
     def __init__(self):
+        global print
+
         super().__init__()
+        print = self.print
 
         self.io = iomanage.IOManager("configs.json")
 
@@ -129,10 +148,11 @@ class MainWindow(QWidget):
 
         bulbabot.print = self.print
 
-        self.bot = bulbabot.bot(self.io)
-        self.botthread = threading.Thread(target = self.bot.run)
-        self.botthread.daemon = True
-        self.botthread.start()
+        self.bot = None
+        self.botthread = None
+        #self.botthread = threading.Thread(target = self.bot.run)
+        #self.botthread.daemon = True
+        #self.botthread.start()
 
         RootLayout = QHBoxLayout()
         self.setLayout(RootLayout)
@@ -207,6 +227,8 @@ class MainWindow(QWidget):
         TermTab.show()
         self.active = TermTab
 
+        self.start_bot()
+
 
 app = QApplication([])
 
@@ -215,5 +237,8 @@ Window.setWindowTitle("BulbaBot")
 
 app.exec_()
 
-asyncio.ensure_future(Window.bot.close(), loop = Window.bot.loop)
+try:
+    Window.stop_bot()
+except:
+    pass
 Window.io.Stop()
