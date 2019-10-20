@@ -238,16 +238,19 @@ class bot(discord.Client):
                                             if d["Autocatcher"]["Mode"] == 2:
                                                 if not pkmn in self.legendaries:
                                                     print("[%s] Legendary mode is active, skipping " % self.bname + pkmn)
+                                                    self.pkfm_pause = False
                                                     return
 
                                             elif d["Autocatcher"]["Mode"] == 3:
                                                 if d["Autocatcher"]["BlacklistMode"] == "w":
                                                     if not pkmn in d["Autocatcher"]["Blacklist"]:
                                                         print("[%s] " % self.bname + pkmn + " is not in whitelist, skipping.")
+                                                        self.pkfm_pause = False
                                                         return
                                                 else:
                                                     if pkmn in d["Autocatcher"]["Blacklist"]:
                                                         print("[%s] " % self.bname + pkmn + " is in blacklist, skipping.")
+                                                        self.pkfm_pause = False
                                                         return
 
                                             await asyncio.sleep(.5)
