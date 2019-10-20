@@ -4,7 +4,7 @@ import iomanage
 import asyncio
 
 from PySide2.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, \
-    QLabel, QListWidget, QListWidgetItem, QLineEdit
+    QLabel, QListWidget, QListWidgetItem, QLineEdit, QCheckBox
 
 from PySide2.QtCore import Signal, Slot, QObject
 
@@ -67,14 +67,26 @@ class ClientSettingTab(QWidget):
         d["ClientToken"] = t
         self.p.io.Write(d, id=id)
 
+    def ROSChange(self, state):
+        d = self.p.io.Read()
+
+        if state != 0: state = True
+        else: state = False
+
+        d["RunOnStart"] = state
+        self.p.io.Write(d)
+
     def __init__(self, p):
         super().__init__()
         self.p = p
 
-        t = p.io.Read()["ClientToken"]
+        d = p.io.Read()
+        t = d["ClientToken"]
 
         RootLayout = QVBoxLayout()
         self.setLayout(RootLayout)
+
+        ## Token Input ##
 
         TokenInsert = QWidget()
         RootLayout.addWidget(TokenInsert)
@@ -91,12 +103,34 @@ class ClientSettingTab(QWidget):
         TokenEdit = QLineEdit()
         TokenEdit.setPlaceholderText("Enter user token here...")
         TokenEdit.returnPressed.connect(lambda: self.ChangeToken(TokenEdit))
+
         if t != None: TokenEdit.setText(t)
+
         TokenInsertL.addWidget(TokenEdit)
 
         SetButton = QPushButton("Set Token")
         TokenInsertL.addWidget(SetButton)
         SetButton.clicked.connect(lambda: self.ChangeToken(TokenEdit))
+
+        ## Run-On-Start Toggle ##
+
+        ROSW = QWidget()
+        RootLayout.addWidget(ROSW)
+
+        ROSWL = QHBoxLayout()
+        ROSW.setLayout(ROSWL)
+
+        #ROSLabel = QLabel("Run Bot On App Start")
+        #ROSWL.addWidget(ROSLabel)
+
+        ROSCB = QCheckBox()
+        ROSWL.addWidget(ROSCB)
+
+        ROSCB.setText("Run Bot on App Start")
+        ROSCB.setChecked(d["RunOnStart"])
+        ROSCB.stateChanged.connect(self.ROSChange)
+
+        #########
 
         ESpacer = QWidget()
         RootLayout.addWidget(ESpacer)
