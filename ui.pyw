@@ -205,7 +205,7 @@ class PokeFarmTab(QWidget):
             d["Pokefarm"]["Channel"] = id
             self.p.io.Write(d)
 
-            asyncio.ensure_future(self.p.bot.Farm(), loop=self.p.bot.loop)
+            #asyncio.ensure_future(self.p.bot.Farm(), loop=self.p.bot.loop)
         except Exception as e:
             self.p.dbprint(e)
             print("[UI] Tried to set farming channel, but failed!")
@@ -214,6 +214,10 @@ class PokeFarmTab(QWidget):
         d = self.p.io.Read()
         d["Pokefarm"]["Mode"] = i
         self.p.io.Write(d)
+
+        if not self.p.bot == None:
+            if not self.p.bot.pkfm_running:
+                asyncio.ensure_future(self.p.bot.Farm(), loop=self.p.bot.loop)
 
 class ClientSettingTab(QWidget):
     def ChangeToken(self, qle):
