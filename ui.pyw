@@ -94,6 +94,10 @@ class PokeFarmTab(QWidget):
         ModeC.setCurrentIndex(p.io.Read()["Pokefarm"]["Mode"])
         ModeC.currentIndexChanged.connect(self.ChangedMode)
 
+        space = QWidget()
+        ModeL.addWidget(space)
+        ModeL.setStretchFactor(space, 3)
+
         ## Channel ##
 
         CW = QWidget()
@@ -115,6 +119,21 @@ class PokeFarmTab(QWidget):
         self.ChanC = QComboBox()
         CL.addWidget(self.ChanC)
         self.SetupChanC(self.ServC.currentIndex())
+
+        space = QWidget()
+        CL.addWidget(space)
+
+        CL.setStretchFactor(self.ChanC, 3)
+        CL.setStretchFactor(self.ServC, 3)
+        #CL.setStretchFactor(space, 5)
+
+        ## Spacers
+
+        space = QWidget()
+        RootLayout.addWidget(space)
+        RootLayout.setStretchFactor(space, 30)
+
+        # End
 
         self.ServC.currentIndexChanged.connect(self.SetupChanC)
         self.ChanC.currentTextChanged.connect(self.ChangedChannel)
@@ -195,7 +214,6 @@ class PokeFarmTab(QWidget):
         d = self.p.io.Read()
         d["Pokefarm"]["Mode"] = i
         self.p.io.Write(d)
-
 
 class ClientSettingTab(QWidget):
     def ChangeToken(self, qle):
