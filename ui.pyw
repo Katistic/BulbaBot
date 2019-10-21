@@ -6,7 +6,7 @@ import asyncio
 import time
 
 from PySide2.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, \
-    QLabel, QListWidget, QListWidgetItem, QLineEdit, QCheckBox
+    QLabel, QListWidget, QListWidgetItem, QLineEdit, QCheckBox, QComboBox
 
 from PySide2.QtCore import Signal, Slot, QObject
 
@@ -32,10 +32,6 @@ Default_Settings = {
     "RunOnStart": False
 }
 
-class SignalObject(QObject):
-    sig = Signal(type)
-    #    self.sig.connect(slot)
-
 class TerminalTab(QWidget):
     def __init__(self, p):
         super().__init__()
@@ -59,6 +55,117 @@ class TerminalTab(QWidget):
 
         self.List.addItem(item)
         self.List.scrollToBottom()
+
+
+class PokeFarmTab(QWidget):
+    def _switched(self):
+        self.SetupServC()
+        self.SetupChanC()
+
+    def __init__(self, p):
+        super().__init__()
+
+        self.p = p
+
+        RootLayout = QVBoxLayout()
+        self.setLayout(RootLayout)
+
+        ## Modes ##
+
+        ModeW = QWidget()
+        RootLayout.addWidget(ModeW)
+
+        ModeL = QHBoxLayout()
+        ModeW.setLayout(ModeL)
+
+        ModeLabel = QLabel("Pokefarmer Mode")
+        ModeL.addWidget(ModeLabel)
+
+        ModeC = QComboBox()
+        ModeL.addWidget(ModeC)
+
+        ModeC.addItem("Off")
+        ModeC.addItem("Slow (30s - 50s between messages)")
+        ModeC.addItem("Medium (8s - 15s between messages)")
+        ModeC.addItem("Fast (1s - 6s between messages)")
+        ModeC.addItem("Bot (1s - 2s between messages)")
+
+        ModeC.setCurrentIndex(p.io.Read()["Pokefarm"]["Mode"])
+        ModeC.currentIndexChanged.connect(self.ChangedMode)
+
+        ## Channel ##
+
+        CW = QWidget()
+        RootLayout.addWidget(CW)
+
+        CL = QHBoxLayout()
+        CW.setLayout(CL)
+
+        ServLabel = QLabel("Server")
+        CL.addWidget(ServLabel)
+
+        self.ServC = QComboBox()
+        CL.addWidget(self.ServC)
+        self.SetupServC()
+
+        ChanLabel = QLabel("Channel")
+        CL.addWidget(ChanLabel)
+
+        self.ChanC = QComboBox()
+        CL.addWidget(self.ChanC)
+        self.SetupChanC(self.ServC.currentIndex())
+
+        self.ServC.currentIndexChanged.connect(self.SetupChanC)
+
+        self.hide()
+
+    def SetupServC(self):
+        if self.p.bot == None or self.p.botthread == None:
+            self.ServC.clear()
+            self.ServC.addItem("Bot needs to be on to change this option.")
+        elif not self.p.bot.is_ready():
+            self.ServC.clear()
+            self.ServC.addItem("Please wait for bot to start before changing this option.")
+        else:
+            self.ServC.clear()
+
+            servs = self.p.bot.guilds
+            servnames = []
+
+            self.ServC.addItem(" ")
+
+            for guild in servs:
+                #servnames.append(guild.name)
+                self.ServC.addItem(guild.name + " (" + str(guild.id) + ")")
+
+            self.SetupChanC(0)
+
+            #self.ServC.addItems(*servnames)
+
+    def SetupChanC(self, i):
+        if self.p.bot == None or self.p.botthread == None:
+            self.ChanC.clear()
+        elif not self.p.bot.is_ready():
+            self.ChanC.clear()
+        elif i == 0:
+            self.ChanC.clear()
+        else:
+            self.ChanC.clear()
+            n = self.ServC.currentText()
+
+            for guild in self.p.bot.guilds:
+                if n == guild.name + " (" + str(guild.id) + ")": break
+
+            self.ChanC.addItem(" ")
+
+            for chan in guild.channels:
+                self.ChanC.addItem(chan.name + " (" + str(chan.id) + ")")
+
+    def ChangedMode(self, i):
+        d = self.p.io.Read()
+        d["Pokefarm"]["Mode"] = i
+        self.p.io.Write(d)
+
 
 class ClientSettingTab(QWidget):
     def ChangeToken(self, qle):
@@ -145,11 +252,16 @@ class MainWindow(QWidget):
     print_wrap = Signal(str)
 
     def print(self, s):
-        self.print_wrap.emit(s)
+        self.print_wrap.emit(str(s))
 
     def ChangeTab(self, tab):
         if not self.active == None:
             self.active.hide()
+
+        try:
+            tab._switched()
+        except:
+            pass
 
         self.active = tab
         tab.show()
@@ -193,6 +305,7 @@ class MainWindow(QWidget):
         global print
 
         super().__init__()
+        self.dbprint = print
         print = self.print
 
         self.io = iomanage.IOManager("configs.json")
@@ -272,9 +385,13 @@ class MainWindow(QWidget):
         CSTab = ClientSettingTab(self)
         TabSectL.addWidget(CSTab)
 
+        PKTab = PokeFarmTab(self)
+        TabSectL.addWidget(PKTab)
+
         ## Sig Connects ##
 
         TerminalButton.clicked.connect(lambda: self.ChangeTab(TermTab))
+        PokeFarmerButton.clicked.connect(lambda: self.ChangeTab(PKTab))
         SettingsButton.clicked.connect(lambda: self.ChangeTab(CSTab))
 
         ##### Sizing #####
