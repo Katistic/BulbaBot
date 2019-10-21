@@ -1,0 +1,1 @@
+pyinstaller -y -F -w --clean -n BulbaBotUI --hidden-import PySide2  "C:/Users/Princess/Documents/GitHub/BulbaBot/ui.pyw"
