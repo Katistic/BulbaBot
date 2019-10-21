@@ -60,12 +60,13 @@ class TerminalTab(QWidget):
 class PokeFarmTab(QWidget):
     def _switched(self):
         self.SetupServC()
-        self.SetupChanC()
+        self.SetupChanC(0)
 
     def __init__(self, p):
         super().__init__()
 
         self.p = p
+        self.catchchange = False
 
         RootLayout = QVBoxLayout()
         self.setLayout(RootLayout)
@@ -116,6 +117,7 @@ class PokeFarmTab(QWidget):
         self.SetupChanC(self.ServC.currentIndex())
 
         self.ServC.currentIndexChanged.connect(self.SetupChanC)
+        self.ChanC.currentTextChanged.connect(self.ChangedChannel)
 
         self.hide()
 
@@ -143,6 +145,8 @@ class PokeFarmTab(QWidget):
             #self.ServC.addItems(*servnames)
 
     def SetupChanC(self, i):
+        self.catchchange = True
+
         if self.p.bot == None or self.p.botthread == None:
             self.ChanC.clear()
         elif not self.p.bot.is_ready():
@@ -151,6 +155,7 @@ class PokeFarmTab(QWidget):
             self.ChanC.clear()
         else:
             self.ChanC.clear()
+            self.catchchange = True
             n = self.ServC.currentText()
 
             for guild in self.p.bot.guilds:
@@ -159,7 +164,32 @@ class PokeFarmTab(QWidget):
             self.ChanC.addItem(" ")
 
             for chan in guild.channels:
-                self.ChanC.addItem(chan.name + " (" + str(chan.id) + ")")
+                if chan.type == bulbabot.discord.ChannelType.text:
+                    self.ChanC.addItem(chan.name + " (" + str(chan.id) + ")")
+
+    def ChangedChannel(self, t):
+        if self.catchchange:
+            self.catchchange = False
+            return
+
+        try:
+            if t == " ":
+                d = self.p.io.Read()
+                d["Pokefarm"]["Channel"] = None
+                self.p.io.Write(d)
+                return
+
+            self.p.dbprint(t)
+            id = int(t.split("(")[-1].split(")")[0])
+
+            d = self.p.io.Read()
+            d["Pokefarm"]["Channel"] = id
+            self.p.io.Write(d)
+
+            asyncio.ensure_future(self.p.bot.Farm(), loop=self.p.bot.loop)
+        except Exception as e:
+            self.p.dbprint(e)
+            print("[UI] Tried to set farming channel, but failed!")
 
     def ChangedMode(self, i):
         d = self.p.io.Read()
@@ -294,7 +324,7 @@ class MainWindow(QWidget):
 
             self.bot = bulbabot.bot(self.io)
             self.botthread = threading.Thread(target = self.bot.run, args=["MAIN"],\
-                kwargs={"ror": [[self.StopButton.setEnabled, True], [self.StartButton.setEnabled, True]]})
+                kwargs={"ror": [[self.StopButton.setEnabled, True], [self.StartButton.setEnabled, True], [self.SetupServ], [self.SetupChan, 0]]})
             self.botthread.daemon = True
             self.botthread.start()
             #self.StartButton.setEnabled(True)
@@ -387,6 +417,9 @@ class MainWindow(QWidget):
 
         PKTab = PokeFarmTab(self)
         TabSectL.addWidget(PKTab)
+
+        self.SetupServ = PKTab.SetupServC
+        self.SetupChan = PKTab.SetupChanC
 
         ## Sig Connects ##
 

@@ -47,7 +47,8 @@ class bot(discord.Client):
             print("[%s] Improper token has been passed, bot could not start." % self.bname)
 
             for x in self.ror:
-                x[0](x[1])
+                if len(x) > 1: x[0](x[1])
+                else: x[0]()
 
     #async def close(self):
     #    await super().close()
@@ -151,7 +152,8 @@ class bot(discord.Client):
             await self.Farm()
 
         for x in self.ror:
-            x[0](x[1])
+            if len(x) > 1: x[0](x[1])
+            else: x[0]()
 
     async def on_guild_join(guild):
         id = self.io.GetId()
