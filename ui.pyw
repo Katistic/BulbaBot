@@ -38,7 +38,7 @@ class TerminalTab(QWidget):
 
         self.p = p
 
-        RootLayout = QVBoxLayout(self)
+        RootLayout = QVBoxLayout()
         self.setLayout(RootLayout)
 
         self.List = QListWidget()
@@ -60,13 +60,15 @@ class TerminalTab(QWidget):
 class PokeFarmTab(QWidget):
     def _switched(self):
         self.SetupServC()
-        self.SetupChanC(0)
+        #self.SetupChanC(0)
 
     def __init__(self, p):
         super().__init__()
 
         self.p = p
         self.catchchange = False
+
+        d = p.io.Read()
 
         RootLayout = QVBoxLayout()
         self.setLayout(RootLayout)
@@ -91,7 +93,7 @@ class PokeFarmTab(QWidget):
         ModeC.addItem("Fast (1s - 6s between messages)")
         ModeC.addItem("Bot (1s - 2s between messages)")
 
-        ModeC.setCurrentIndex(p.io.Read()["Pokefarm"]["Mode"])
+        ModeC.setCurrentIndex(d["Pokefarm"]["Mode"])
         ModeC.currentIndexChanged.connect(self.ChangedMode)
 
         space = QWidget()
@@ -150,20 +152,30 @@ class PokeFarmTab(QWidget):
         else:
             self.ServC.clear()
 
+            c = self.p.io.Read()["Pokefarm"]["Channel"]
+            g = None
+            if c != None:
+                g = self.p.bot.get_channel(c).guild.id
+
             servs = self.p.bot.guilds
             servnames = []
 
             self.ServC.addItem(" ")
 
+            i = 0
+            ci = 1
             for guild in servs:
                 #servnames.append(guild.name)
                 self.ServC.addItem(guild.name + " (" + str(guild.id) + ")")
+                if guild.id == g: i = ci
+                ci += 1
 
-            self.SetupChanC(0)
+            self.ServC.setCurrentIndex(i)
+            self.SetupChanC(0 if c == None else c)
 
             #self.ServC.addItems(*servnames)
 
-    def SetupChanC(self, i):
+    def SetupChanC(self, i=None):
         self.catchchange = True
 
         if self.p.bot == None or self.p.botthread == None:
@@ -181,10 +193,23 @@ class PokeFarmTab(QWidget):
                 if n == guild.name + " (" + str(guild.id) + ")": break
 
             self.ChanC.addItem(" ")
+            self.catchchange = True
 
+            index = 0
+            ci = 1
             for chan in guild.channels:
                 if chan.type == bulbabot.discord.ChannelType.text:
                     self.ChanC.addItem(chan.name + " (" + str(chan.id) + ")")
+                    self.p.dbprint(chan.name + " (" + str(chan.id) + ")")
+                    if i != None and chan.id == i:
+                        index = ci
+                    ci += 1
+
+            for x in range(0, self.ChanC.count()): self.p.dbprint(self.ChanC.itemText(x))
+
+            if len(str(i)) == 18:
+                self.catchchange = True
+                self.ChanC.setCurrentIndex(index)
 
     def ChangedChannel(self, t):
         if self.catchchange:
@@ -346,7 +371,7 @@ class MainWindow(QWidget):
 
             self.bot = bulbabot.bot(self.io)
             self.botthread = threading.Thread(target = self.bot.run, args=["MAIN"],\
-                kwargs={"ror": [[self.StopButton.setEnabled, True], [self.StartButton.setEnabled, True], [self.SetupServ], [self.SetupChan, 0]]})
+                kwargs={"ror": [[self.StopButton.setEnabled, True], [self.StartButton.setEnabled, True], [self.SetupServ]]})#, [self.SetupChan, 0]]})
             self.botthread.daemon = True
             self.botthread.start()
             #self.StartButton.setEnabled(True)
