@@ -56,6 +56,72 @@ class TerminalTab(QWidget):
         self.List.addItem(item)
         self.List.scrollToBottom()
 
+class AutoCatchTab(QWidget):
+    def __init__(self, p):
+        super().__init__()
+
+        self.p = p
+        d = p.io.Read()
+
+        RootLayout = QVBoxLayout()
+        self.setLayout(RootLayout)
+
+        ## Modes ##
+
+        ModeW = QWidget()
+        RootLayout.addWidget(ModeW)
+
+        ModeL = QHBoxLayout()
+        ModeW.setLayout(ModeL)
+
+        ModeLabel = QLabel("Autocatcher Mode")
+        ModeL.addWidget(ModeLabel)
+
+        ModeC = QComboBox()
+        ModeL.addWidget(ModeC)
+
+        ModeC.addItem("Off")
+        ModeC.addItem("Catch All")
+        ModeC.addItem("Legendary")
+        ModeC.addItem("Blacklist/Whitelisted")
+
+        ModeC.setCurrentIndex(d["Autocatcher"]["Mode"])
+        ModeC.currentIndexChanged.connect(self.ChangedMode)
+
+        space = QWidget()
+        ModeL.addWidget(space)
+        #ModeL.setStretchFactor(space, 1)
+
+        HModeB = QCheckBox()
+        ModeL.addWidget(HModeB)
+
+        HModeB.setText("Act Human")
+        HModeB.setChecked(0 if d["Autocatcher"]["Safe"] == False else 1)
+        HModeB.clicked.connect(self.ChangeHuman)
+
+        space = QWidget()
+        ModeL.addWidget(space)
+        ModeL.setStretchFactor(space, 1)
+
+        ## Spacers
+
+        space = QWidget()
+        RootLayout.addWidget(space)
+        RootLayout.setStretchFactor(space, 30)
+
+        self.hide()
+
+    def ChangedMode(self, i):
+        id = self.p.io.GetId()
+        d = self.p.io.Read(True, id)
+        d["Autocatcher"]["Mode"] = i
+        self.p.io.Write(d, id)
+
+    def ChangeHuman(self, c):
+        id = self.p.io.GetId()
+        d = self.p.io.Read(True, id)
+        d["Autocatcher"]["Mode"] = c
+        self.p.io.Write(d, id)
 
 class PokeFarmTab(QWidget):
     def _switched(self):
@@ -459,6 +525,9 @@ class MainWindow(QWidget):
         TermTab = TerminalTab(self)
         TabSectL.addWidget(TermTab)
 
+        ACTab = AutoCatchTab(self)
+        TabSectL.addChildWidget(ACTab)
+
         CSTab = ClientSettingTab(self)
         TabSectL.addWidget(CSTab)
 
@@ -471,6 +540,7 @@ class MainWindow(QWidget):
         ## Sig Connects ##
 
         TerminalButton.clicked.connect(lambda: self.ChangeTab(TermTab))
+        AutoCatcherButton.clicked.connect(lambda: self.ChangeTab(ACTab))
         PokeFarmerButton.clicked.connect(lambda: self.ChangeTab(PKTab))
         SettingsButton.clicked.connect(lambda: self.ChangeTab(CSTab))
 
