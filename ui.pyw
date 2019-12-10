@@ -101,7 +101,7 @@ class AutoCatchTab(QWidget):
 
         space = QWidget()
         ModeL.addWidget(space)
-        ModeL.setStretchFactor(space, 1)
+        ModeL.setStretchFactor(space, 3)
 
         ## Spacers
 

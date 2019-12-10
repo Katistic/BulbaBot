@@ -276,7 +276,7 @@ class bot(discord.Client):
                                             else:
                                                 print("[%s] Pokemon guessed, skipping." % self.bname)
 
-                                        print("[%s] Check took " + str(time.time() - st) + " seconds." % self.bname)
+                                        print("[" + self.bname + "] Check took " + str(time.time() - st) + " seconds.")
                                         if s != discord.Status.online and s != discord.Status.do_not_disturb and s != None:
                                             await self.change_presence(status = s)
                         self.pkfm_pause = False
